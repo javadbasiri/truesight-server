@@ -1,11 +1,36 @@
 # System Patterns & Architecture
 
 ## Data Flow Pipeline
-`Dota 2 Client (HTTP POST /gsi)` -> `GsiController` -> `StateManager / RuleEngineService` -> `CoachGateway (Socket.io)` -> `truesight-client`
+`Dota 2 Client (HTTP POST /gsi)` → `GsiController`
+- → `RuleEngineService` (تایمرهای ماکرو، منابع هیرو، پاور اسپایک آیتم)
+- → `CoachingEngineService` (تصمیم‌گیری استراتژیک)
+  → `CoachGateway (Socket.io)` → `truesight-client`
+
+## Coaching Decision Pipeline
+1. **Normalize:** `GameStateProcessorService` پکت خام را به `ProcessedGameState` تبدیل می‌کند.
+2. **Match lifecycle:** تشخیص مچ جدید یا عقب‌رفتن تایمر (دمو) و ریست کامل state.
+3. **Candidates (به ترتیب اولویت):** combat → phase coach → situation DB → anti-throw →
+   push windows → net worth → phase coaching → item build → hero specific → ability tips.
+4. **Silence:** اگر `DoNothingDetector` تأیید کند، هیچ پیامی تولید نمی‌شود.
+5. **Enrichment:** `ConfidenceCalculator` نمره‌ی اطمینان می‌دهد، توصیه‌ی کم‌اطمینان سرکوب
+   یا لحنش نرم می‌شود و در صورت نیاز توضیح اضافه می‌شود.
+6. **Delivery:** `MessageQueue` بر اساس اولویت Rate Limit اعمال می‌کند؛ `MessageFormatter`
+   پیام فارسی را برای موقعیت پراسترس کوتاه/برجسته می‌کند؛ `CoachGateway` ارسال می‌کند.
+7. **Learning:** `PlayerTrustCalibrator` پایبندی بازیکن را از تیک‌های بعدی استنتاج می‌کند و
+   `PostGameAnalyzer` رویدادها را برای تحلیل پس از بازی ثبت می‌کند.
 
 ## Key Architectural Patterns
-1. **Loopback Isolation (`127.0.0.1:4000`):** The NestJS server strictly binds to `127.0.0.1` on port `4000` to bypass VPN virtual adapters (Windscribe, FortiClient) and ensure sub-millisecond local communication with both Dota 2 and the Tauri client.
-2. **Idempotent & De-bounced Rules:** Because Dota 2 sends GSI snapshots every ~100ms (`buffer: 0.1`, `throttle: 0.1`), rules must never evaluate statelessly.
-   - *Time-based rules* track `lastTriggeredClockTime` so they fire at most once per game second.
-   - *State-based rules* use hysteresis/hysteresis locks (e.g., trigger low-mana warning below 25%, reset lock only when mana recovers above 35%) or inventory state diffing.
-3. **Fast HTTP Acknowledge:** `POST /gsi` always returns `@HttpCode(200)` immediately so the Dota 2 Source 2 client never drops or throttles the GSI connection.
+1. **Loopback Isolation (`127.0.0.1:4000`):** بایند مستقیم روی لوکال‌هاست برای عبور از
+   آداپتورهای VPN (Windscribe، FortiClient) و ارتباط زیرمیلی‌ثانیه‌ای با دوتا ۲ و کلاینت Tauri.
+2. **Idempotent & De-bounced Rules:** دوتا ۲ هر ~۱۰۰ms یک snapshot می‌فرستد (`buffer: 0.1`, `throttle: 0.1`)، بنابراین:
+   - *موتور کوچینگ* حداکثر یک‌بار در هر ثانیه‌ی بازی ارزیابی می‌کند (`clockTime` + throttle زمانی).
+   - *قوانین زمانی* `lastTriggeredClockTime` را دنبال می‌کنند تا حداکثر یک‌بار در هر ثانیه شلیک شوند.
+   - *قوانین آستانه‌ای* از Hysteresis (مانا < ۲۵٪، ریست > ۳۵٪) استفاده می‌کنند.
+   - *قوانین موقعیت/آیتم* کول‌داون اختصاصی (۳۰–۱۲۰ ثانیه) و state diffing دارند.
+   - *صف پیام* اولویت‌های `GAME_ENDING/CRITICAL/HIGH/MEDIUM/LOW` را Rate Limit می‌کند.
+3. **Fast HTTP Acknowledge:** `POST /gsi` همیشه سریع `@HttpCode(200)` برمی‌گرداند تا
+   کلاینت Source 2 اتصال GSI را قطع یا throttle نکند.
+4. **Additive Socket Contract:** قرارداد `coach-alert` بدون تغییر ماند؛ رویدادهای
+   `coaching-status` و `post-game-summary` به‌صورت افزایشی اضافه شدند.
+5. **Optional Integrations:** `SteamChatBotService` با `@Optional()` تزریق می‌شود؛ نبود
+   پکیج/اعتبارنامه هیچ تأثیری روی مسیر اصلی Socket.io ندارد.

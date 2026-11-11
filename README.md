@@ -1,132 +1,101 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TrueSight Coach Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+موتور تحلیل و کوچینگ زنده‌ی دوتا ۲. این سرور پکت‌های **Game State Integration (GSI)**
+را از کلاینت دوتا ۲ دریافت می‌کند، وضعیت مچ را به‌صورت stateful پردازش می‌کند و
+توصیه‌های کوتاه، اقدام‌محور و فارسی را از طریق **Socket.io** به `truesight-client`
+(اورلی Tauri) می‌فرستد.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+> فلسفه: هر توصیه باید به این سؤال جواب بدهد که «آیا این اقدام ما را سریع‌تر به
+> زدن Ancient دشمن نزدیک می‌کند؟»
 
-## Description
+## قابلیت‌ها
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### موتور کوچینگ (`src/coaching`)
+- **تحلیل ترکیب و شرط برد:** `earlyPush`، `timingPush`، `splitPush`، `highgroundSiege`، `outscale`.
+- **تشخیص پنجره‌ی پوش:** مرگ هم‌زمان دشمن، کری بدون بای‌بک، پاور اسپایک آیتم، برتری آنلتی، آیجیس و تاور کم‌جان.
+- **سیستم ضد ترو:** دکمه‌های رایج باختن بازی (دایو در فوگ، روشان بدون دید، فارم با برتری ۸ هزار گلد و ...).
+- **کوچ فازبندی‌شده:** لینینگ (۰–۱۰)، میدگیم (۱۰–۳۰) و لیت‌گیم (۳۰+).
+- **تحلیل نبرد لحظه‌ای:** تخمین شانس برد بر اساس لول، ارزش خالص، جان/مانا، تعداد نفرات و مچاپ.
+- **پایگاه ۵۳ موقعیت:** دتکشن هیروهای اینویز، نیاز به BKB، تایمینگ روشان، ریسک هایگراند، تایمینگ تالنت و ...
+- **مشاور آیتم و هیرو:** پیشنهاد آیتم بعدی بر اساس هیرو، گلد و تهدیدهای دشمن + توصیه‌های مخصوص ۱۷ هیرو.
+- **اطمینان‌سنجی:** هر توصیه نمره‌ی Confidence می‌گیرد؛ توصیه‌های کم‌اطمینان سرکوب یا لحنشان نرم می‌شود.
+- **صف پیام و Rate Limit:** جلوگیری کامل از اسپم بر اساس اولویت (`GAME_ENDING` تا `LOW`).
+- **کالیبراسیون اعتماد:** نرخ پایبندی بازیکن اندازه‌گیری و میزان توضیح/تکرار پیام تنظیم می‌شود.
+- **سکوت عمدی:** وقتی «هیچ کاری نکردن» بهترین تصمیم است، پیام تولید نمی‌شود.
+- **تحلیل بعد از بازی:** پنجره‌های از دست‌رفته، لحظات تعیین‌کننده و پیشنهادهای قابل اقدام.
+- **تحویل اختیاری در چت استیم:** با تنظیم `STEAM_USERNAME`/`STEAM_PASSWORD` و نصب پکیج اختیاری `steam-user`.
 
-## Project setup
+### قوانین ماکرو و منابع (`RuleEngineService`)
+- رون آب، رون پاور، رون ویزدام، لوتوس، استک کمپ و اولین شب.
+- هشدار جان/مانای کم با Hysteresis، بای‌بک لیت‌گیم و پاور اسپایک ۱۰ آیتم کلیدی.
 
-```bash
-$ npm install
-```
-
-## Compile and run the project
+## راه‌اندازی
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
+npm run start:dev
 ```
 
-## Run tests
+سرور فقط روی لوکال‌هاست بایند می‌شود: `http://127.0.0.1:4000`
+
+### تنظیم دوتا ۲
+
+1. فایل `gamestate_integration_truesight.cfg` (در ریشه‌ی همین ریپو) را در مسیر زیر کپی کنید:
+
+```
+Steam\steamapps\common\dota 2 beta\game\dota\cfg\gamestate_integration\
+```
+
+2. در Steam → Properties → Launch Options مقدار `-gamestateintegration` را اضافه کنید.
+
+> سکشن `allplayers` برای تحلیل دشمن (مرگ، بای‌بک، ارزش خالص و ترکیب تیمی) ضروری است.
+> بدون آن، موتور کوچینگ فقط از داده‌ی هیروی خودتان استفاده می‌کند.
+
+## قرارداد Socket.io
+
+| رویداد | payload |
+| --- | --- |
+| `coach-alert` | `{ id: string; message: string; type: 'info' \| 'warning' \| 'spike'; audioKey?: string }` |
+| `game-state` | خلاصه‌ی مپ/بازیکن/هیرو برای داشبورد |
+| `coaching-status` | `{ inGame, matchId, clockTime, gamePhase, winCondition, netWorth, trustMetrics, lastAdvice, lastAlertAt }` |
+| `post-game-summary` | `{ text: string; summary: PostGameSummary }` |
+
+## HTTP API
+
+| متد | مسیر | توضیح |
+| --- | --- | --- |
+| `POST` | `/gsi` | دریافت پکت GSI (همیشه `200`) |
+| `GET` | `/` | health check |
+| `GET` | `/coach/status` | وضعیت زنده‌ی موتور کوچینگ |
+| `GET` | `/coach/post-game` | تحلیل بعد از بازی |
+| `POST` | `/coach/reset` | ریست دستی state موتور |
+
+## تست و کیفیت
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run test        # unit tests (vitest)
+npm run test:e2e    # e2e tests (POST /gsi، /coach/status)
+npm run lint        # oxlint (type-aware)
+npm run build       # nest build
 ```
 
-## Deployment
+## معماری
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```
+Dota 2 (POST /gsi)
+   └─ GsiController (thin, @HttpCode(200))
+        ├─ RuleEngineService  → تایمرهای ماکرو و منابع
+        └─ CoachingEngineService
+             ├─ GameStateProcessor (GSI → ProcessedGameState)
+             ├─ WinConditionAnalyzer / NetWorthTracker / CombatAnalyzer
+             ├─ LaningCoach / MidgameCoach / LategameCoach
+             ├─ PushTimingDetector / AntiThrow / SituationDatabase
+             ├─ ItemBuildAdvisor / HeroSpecificAdvice
+             ├─ ConfidenceCalculator / PlayerTrustCalibrator
+             ├─ MessageQueue / MessageFormatter
+             └─ PostGameAnalyzer / WinrateTracker
+                   └─ CoachGateway → Socket.io → truesight-client
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
-
-```bash
-$ npx @nestjs/observe link
-```
-
-It installs `@nestjs/observe`, wires it into `AppModule` and `main.ts`, and writes the app key and secret into `.env`, which every `nest start` script (`start`, `start:dev`, `start:debug`) then loads. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
-
-Or do it by hand:
-
-```bash
-$ npm install @nestjs/observe
-```
-
-Then follow the [setup guide](https://docs.nestjs.com/observability/sdk) - it takes a single import and an app key.
-
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+قواعد ضد اسپم: ارزیابی حداکثر یک بار در هر ثانیه‌ی بازی، کول‌داون هر موقعیت،
+قفل Hysteresis برای آستانه‌ها و Rate Limit بر اساس اولویت پیام.

@@ -9,4 +9,4 @@ async function bootstrap() {
   await app.listen(4000, '127.0.0.1');
   console.log('TrueSight GSI Server is running on http://127.0.0.1:4000');
 }
-bootstrap();
+void bootstrap();
