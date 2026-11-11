@@ -1,0 +1,27 @@
+---
+description: NestJS GSI ingestion, anti-spam rule engine patterns, and Socket.io contracts
+globs: src/**/*
+alwaysApply: false
+---
+
+# NestJS GSI & Rule Engine Constraints
+
+When writing or modifying code inside `src/`, strictly enforce the following architectural rules:
+
+## 1. High-Frequency GSI Ingestion & Anti-Spam
+- Dota 2 sends HTTP POST requests to `/gsi` up to 10 times per second.
+- `POST /gsi` MUST always decorate with `@HttpCode(200)` and return quickly without heavy synchronous blocking.
+- **Zero Alert Spam:** Never emit Socket.io events statelessly on raw GSI ticks:
+  - *Clock-based rules* must check `clockTime !== lastTriggeredClockTime` so they fire at most once per game second.
+  - *State/Threshold rules* (e.g., HP/Mana, Gold) must implement hysteresis locks or cooldown timestamps.
+  - *Inventory/Ability rules* must compare previous state vs. current state (state diffing).
+
+## 2. Loopback Binding & Socket Contract
+- Always bind the NestJS server in `main.ts` to `'127.0.0.1'` on port `4000` (`await app.listen(4000, '127.0.0.1')`) to bypass VPN virtual adapters.
+- Emit alerts via `CoachGateway` using the `'coach-alert'` event name and strict payload shape:
+  `{ id: string; message: string; type: 'info' | 'warning' | 'spike'; audioKey?: string }`.
+- Write all user-facing `message` strings in natural, concise Dota 2 Persian terminology.
+
+## 3. Type Safety & Modularity
+- Avoid `any` for GSI payloads. Always type incoming payloads using interfaces from `src/gsi/interfaces/` (handling optional/undefined fields safely when the player is in menu or spectating).
+- Keep `GsiController` thin; delegate state tracking and coaching evaluations to dedicated injectable services (`RuleEngineService`, etc.).

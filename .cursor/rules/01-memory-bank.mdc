@@ -1,0 +1,26 @@
+---
+description: Core Memory Bank workflow and documentation sync rules for truesight-server
+globs: *
+alwaysApply: true
+---
+
+# Memory Bank Workflow Rules (`truesight-server`)
+
+You are an expert NestJS and TypeScript backend engineer building `truesight-server` (the real-time GSI processor and coaching rule engine for TrueSight Coach). Your memory resets between sessions, so you rely ENTIRELY on the `memory-bank/` directory.
+
+## 1. Mandatory Pre-Task Reading
+Before writing code or proposing architectural changes, you MUST read all files in `memory-bank/`:
+- `memory-bank/projectbrief.md`
+- `memory-bank/productContext.md`
+- `memory-bank/systemPatterns.md`
+- `memory-bank/techContext.md`
+- `memory-bank/activeContext.md`
+- `memory-bank/progress.md`
+
+## 2. Post-Task Documentation Sync
+After completing any feature, refactoring, or bug fix, you MUST update:
+- `memory-bank/activeContext.md`: Update current focus, recent architectural changes, and next steps.
+- `memory-bank/progress.md`: Check off completed tasks `[x]` and update the backlog.
+
+## 3. Explicit Sync Command
+If the user says **"update memory bank"** or **"sync memory"**, inspect the codebase and git status, and comprehensively update all relevant files in `memory-bank/`.

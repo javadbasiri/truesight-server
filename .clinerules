@@ -1,0 +1,9 @@
+# Single Source of Truth Protocol (`truesight-server`)
+
+You must strictly follow the backend architecture and rules defined in `.cursor/rules/` and `memory-bank/`:
+
+1. **Mandatory Memory Read:** At the start of every task (in both Plan Mode and Act Mode), read `memory-bank/activeContext.md`, `memory-bank/progress.md`, `memory-bank/systemPatterns.md`, and `memory-bank/techContext.md`.
+2. **Contextual Rules Lookup:** Before modifying backend files, read and enforce the corresponding rule files:
+   - Always follow `.cursor/rules/01-memory-bank.mdc`
+   - When modifying `src/**/*`, read and enforce `.cursor/rules/02-nestjs-gsi-engine.mdc`
+3. **Post-Task Sync:** After completing any implementation, rule addition, or refactoring, always update `memory-bank/activeContext.md` and `memory-bank/progress.md`.
